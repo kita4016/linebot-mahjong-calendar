@@ -41,9 +41,9 @@ const CALENDAR_CONFIG = {
             promises.push(handleMessageEvent(ev));
             break;
           // ポストバックイベント
-          // case "postback":
-          //   promises.push(handlePostbackEvent(ev));
-          //   break;
+          case "postback":
+            promises.push(handlePostbackEvent(ev));
+            break;
           default:
             return;
         }
@@ -155,6 +155,30 @@ const CALENDAR_CONFIG = {
           .catch((err) => {
             console.log(err.message);
           });
+    } else if (text === "日時選択") {
+      const flexMessage = {
+        "type": "flex",
+        "altText": "何かのメッセージ",
+        "contents": {
+          "type": "bubble",
+          "body": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              {
+                "type": "button",
+                "action": {
+                  "type": "datetimepicker",
+                  "label": "日時選択",
+                  "data": "datetime-select",
+                  "mode": "datetime"
+                }
+              }
+            ]
+          }
+        }
+      };
+      client.replyMessage(ev.replyToken, flexMessage);
     } else {
       client.replyMessage(ev.replyToken, {
         type: "text",
@@ -171,5 +195,15 @@ const CALENDAR_CONFIG = {
             text: `${name}さん友だち追加ありがとうございます！`,
           });
         });
+  };
+  const handlePostbackEvent = (ev) => {
+    const data = ev.postback.data;
+    if (data === "datetime-select") {
+        const selectedDate = ev.postback.params.datetime;
+        client.replyMessage(ev.replyToken, {
+          type: "text",
+          text: selectedDate,
+        });
+    }
   };
   exports.app = functions.https.onRequest(app);
