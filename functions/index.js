@@ -1,4 +1,7 @@
 const functions = require("firebase-functions");
+const admin = require('firebase-admin');
+admin.initializeApp();
+const db = admin.firestore();
 const express = require("express");
 const app = express();
 const Calendar = require("node-google-calendar");
@@ -51,11 +54,11 @@ const CALENDAR_CONFIG = {
     }
     Promise
         .all(promises)
-        .then(console.log("all promises passed"))
+        .then(() => console.log("all promises passed"))
         .catch((e) => console.error(e.stack));
   };
   
-  const handleMessageEvent = (ev) => {
+  const handleMessageEvent = async (ev) => {
     const text = ev.message.text;
     if (text === "はじめまして") {
       const flexMessage = {
@@ -179,6 +182,28 @@ const CALENDAR_CONFIG = {
         }
       };
       client.replyMessage(ev.replyToken, flexMessage);
+    } else if (text === "書き込みテスト") {
+      db
+        .collection("users")
+        .doc("userId")
+        .set({
+          name: "nakagawa",
+          id: 1,
+        });
+    } else if (text === "読み込みテスト") {
+      const doc = await db
+        .collection("users")
+        .doc("user2")
+        .get();
+      const userData = doc.data();
+      const name = userData.name;
+      const age = userData.age;
+      const message = `名前は${name}、年齢は${age}`;
+      console.log("debug", userData, message);
+      await client.replyMessage(ev.replyToken, {
+        type: "text",
+        text,
+      });
     } else {
       client.replyMessage(ev.replyToken, {
         type: "text",
@@ -190,6 +215,13 @@ const CALENDAR_CONFIG = {
     client.getProfile(ev.source.userId)
         .then((profile) => {
           const name = profile.displayName;
+          const lineId = ev.source.userId;
+          db
+            .collection("users")
+            .doc(lineId)
+            .set({
+              name: name,
+            });
           client.replyMessage(ev.replyToken, {
             type: "text",
             text: `${name}さん友だち追加ありがとうございます！`,
