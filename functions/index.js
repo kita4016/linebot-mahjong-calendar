@@ -47,8 +47,6 @@ const CALENDAR_CONFIG = {
           case "postback":
             promises.push(handlePostbackEvent(ev));
             break;
-          default:
-            return;
         }
       }
     }
@@ -191,18 +189,14 @@ const CALENDAR_CONFIG = {
           id: 1,
         });
     } else if (text === "読み込みテスト") {
-      const doc = await db
-        .collection("users")
-        .doc("user2")
-        .get();
+      const doc = await db.collection("users").doc("user2").get();
       const userData = doc.data();
       const name = userData.name;
       const age = userData.age;
-      const message = `名前は${name}、年齢は${age}`;
-      console.log("debug", userData, message);
-      await client.replyMessage(ev.replyToken, {
+      console.log("debug", userData);
+      return client.replyMessage(ev.replyToken, {
         type: "text",
-        text,
+        text: `名前は${name}、年齢は${age}です`
       });
     } else {
       client.replyMessage(ev.replyToken, {
@@ -238,4 +232,4 @@ const CALENDAR_CONFIG = {
         });
     }
   };
-  exports.app = functions.https.onRequest(app);
+  exports.app = functions.region('asia-northeast1').https.onRequest(app);
